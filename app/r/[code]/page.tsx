@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import { InterstitialRedirect } from "@/components/interstitial-redirect";
 import { resolveRedirect } from "@/lib/links";
-import { getBaseUrlFromRequest, getVisitContext } from "@/lib/request";
+import { getBaseUrlFromHeaders, getVisitContext } from "@/lib/request";
 
 type RedirectPageProps = {
   params: Promise<{
@@ -15,11 +15,7 @@ type RedirectPageProps = {
 export default async function RedirectPage({ params }: RedirectPageProps) {
   const { code } = await params;
   const headerList = await headers();
-  const baseUrl = getBaseUrlFromRequest(
-    new Request(`${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/r/${code}`, {
-      headers: headerList,
-    }),
-  );
+  const baseUrl = getBaseUrlFromHeaders(headerList);
   const result = await resolveRedirect(code, baseUrl, getVisitContext(headerList));
 
   if (result.status === "redirect") {

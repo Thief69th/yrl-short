@@ -4,11 +4,34 @@ function normalizeBaseUrl(value: string) {
   return value.endsWith("/") ? value.slice(0, -1) : value;
 }
 
-export function getBaseUrlFromRequest(request: Request) {
+export function getConfiguredBaseUrl() {
   const configuredUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL;
 
   if (configuredUrl) {
     return normalizeBaseUrl(configuredUrl);
+  }
+
+  return null;
+}
+
+export function getBaseUrlFromHeaders(headersList: Headers) {
+  const configuredUrl = getConfiguredBaseUrl();
+
+  if (configuredUrl) {
+    return configuredUrl;
+  }
+
+  const forwardedProto = headersList.get("x-forwarded-proto") ?? "https";
+  const host = headersList.get("x-forwarded-host") ?? headersList.get("host") ?? "localhost:3000";
+
+  return normalizeBaseUrl(`${forwardedProto}://${host}`);
+}
+
+export function getBaseUrlFromRequest(request: Request) {
+  const configuredUrl = getConfiguredBaseUrl();
+
+  if (configuredUrl) {
+    return configuredUrl;
   }
 
   const requestUrl = new URL(request.url);
