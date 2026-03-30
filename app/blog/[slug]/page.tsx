@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { PublicPageShell } from "@/components/public-page-shell";
-import { blogPosts, getBlogPost } from "@/lib/site-content";
+import { getPublishedBlogPostBySlug } from "@/lib/blogs";
 
 type BlogPostPageProps = {
   params: Promise<{
@@ -9,13 +9,11 @@ type BlogPostPageProps = {
   }>;
 };
 
-export async function generateStaticParams() {
-  return blogPosts.map((post) => ({ slug: post.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
-  const post = getBlogPost(slug);
+  const post = await getPublishedBlogPostBySlug(slug);
 
   if (!post) {
     notFound();
@@ -27,11 +25,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <span className="pill">Blog post</span>
         <h1 className="mt-4 section-title">{post.title}</h1>
         <div className="mt-3 text-sm text-muted">
-          {post.publishedAt} · {post.readTime}
+          {post.publishedAt
+            ? new Date(post.publishedAt).toLocaleDateString("en-IN")
+            : "Draft"}{" "}
+          | {post.readTime}
         </div>
 
         <div className="mt-6 grid gap-4">
-          {post.content.map((paragraph) => (
+          {post.paragraphs.map((paragraph) => (
             <p key={paragraph} className="text-sm leading-8 text-muted">
               {paragraph}
             </p>

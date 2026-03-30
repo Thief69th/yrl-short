@@ -1,6 +1,6 @@
 "use client";
 
-import { UserButton } from "@clerk/nextjs";
+import { SignOutButton, UserButton } from "@clerk/nextjs";
 import QRCode from "qrcode";
 import Image from "next/image";
 import Link from "next/link";
@@ -202,10 +202,10 @@ export function DashboardShell({ initialOverview }: DashboardShellProps) {
             <div>
               <div className="pill">Blink Pro</div>
               <h1 className="mt-4 font-display text-3xl font-bold text-foreground">
-                URL Shortener SaaS
+                Welcome back
               </h1>
               <p className="mt-3 text-sm leading-7 text-muted">
-                Free users monetize through a branded interstitial. Paid users skip ads and unlock deeper analytics.
+                {overview.viewer.email}
               </p>
             </div>
             <div className="rounded-full bg-white/80 p-2">
@@ -225,6 +225,14 @@ export function DashboardShell({ initialOverview }: DashboardShellProps) {
                 Admin console
               </Link>
             ) : null}
+            {overview.viewer.role === "admin" ? (
+              <Link href="/admin#blog-manager" className="button-secondary justify-start">
+                Write blog
+              </Link>
+            ) : null}
+            <SignOutButton>
+              <button className="button-secondary justify-start">Logout</button>
+            </SignOutButton>
           </nav>
 
           <div className="surface-card mt-8 rounded-[28px] p-4">
@@ -252,9 +260,10 @@ export function DashboardShell({ initialOverview }: DashboardShellProps) {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <span className="pill">Control center</span>
-                <h2 className="mt-4 section-title">Monetized links, clean analytics, fast operations.</h2>
+                <h2 className="mt-4 section-title">Create, manage, and track your links.</h2>
                 <p className="mt-3 max-w-3xl text-sm leading-8 text-muted">
-                  Build short links, monitor performance, and manually upgrade accounts while v1 billing stays lightweight.
+                  Account ek baar create karo, uske baad same email aur password se login rakho. Dashboard mobile par
+                  bhi clean aur simple rahega.
                 </p>
               </div>
               <Link href="/pricing" className="button-secondary">
@@ -483,7 +492,7 @@ export function DashboardShell({ initialOverview }: DashboardShellProps) {
             </div>
 
             <div className="mt-6 overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
+              <table className="hidden min-w-full text-left text-sm lg:table">
                 <thead>
                   <tr className="text-muted">
                     <th className="px-4 py-3 font-semibold">Short link</th>
@@ -541,6 +550,54 @@ export function DashboardShell({ initialOverview }: DashboardShellProps) {
                   ))}
                 </tbody>
               </table>
+
+              <div className="grid gap-4 lg:hidden">
+                {overview.recentLinks.map((link) => (
+                  <article key={link.id} className="surface-card rounded-[24px] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedLinkId(link.id)}
+                        className="text-left"
+                      >
+                        <div className="font-semibold text-brand-strong">{link.shortCode}</div>
+                        <div className="mt-1 break-all text-xs text-muted">{link.shortUrl}</div>
+                      </button>
+                      <div className="text-right text-sm">
+                        <div className="font-semibold text-foreground">{link.clicks} clicks</div>
+                        <div className="mt-1 text-xs text-muted">{formatDate(link.createdAt)}</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 break-all text-sm text-foreground">{link.longUrl}</div>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        className="button-secondary px-4 py-2 text-xs"
+                        onClick={() => beginEdit(link)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="button-secondary px-4 py-2 text-xs"
+                        onClick={() => void copyText(link.shortUrl, "Short URL")}
+                      >
+                        Copy
+                      </button>
+                      <button
+                        type="button"
+                        className="button-secondary px-4 py-2 text-xs"
+                        disabled={busy}
+                        onClick={() => void deleteLink(link.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
             </div>
           </section>
 

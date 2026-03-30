@@ -71,7 +71,7 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
       ) : null}
 
       <div className="mt-6 overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
+        <table className="hidden min-w-full text-left text-sm lg:table">
           <thead>
             <tr className="text-muted">
               <th className="px-4 py-3 font-semibold">User</th>
@@ -119,6 +119,54 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
             ))}
           </tbody>
         </table>
+
+        <div className="grid gap-4 lg:hidden">
+          {users.map((user) => (
+            <article key={user.id} className="surface-card rounded-[24px] p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="font-semibold text-foreground">{user.email}</div>
+                  <div className="mt-1 text-xs text-muted">
+                    {new Date(user.createdAt).toLocaleString()}
+                  </div>
+                </div>
+                <span className="rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-brand-strong">
+                  {user.plan}
+                </span>
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+                <div>
+                  <div className="text-muted">Role</div>
+                  <div className="mt-1 font-semibold uppercase tracking-[0.18em] text-foreground">
+                    {user.role}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-muted">Links</div>
+                  <div className="mt-1 font-semibold text-foreground">{user.totalLinks}</div>
+                </div>
+                <div>
+                  <div className="text-muted">Clicks</div>
+                  <div className="mt-1 font-semibold text-foreground">{user.totalClicks}</div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => togglePlan(user.id, user.plan)}
+                disabled={busyId === user.id}
+                className="button-secondary mt-4 w-full"
+              >
+                {busyId === user.id
+                  ? "Saving..."
+                  : user.plan === "free"
+                    ? "Upgrade to paid"
+                    : "Downgrade to free"}
+              </button>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );

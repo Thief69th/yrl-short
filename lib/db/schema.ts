@@ -119,3 +119,30 @@ export const earnings = pgTable(
     ),
   }),
 );
+
+export const blogPosts = pgTable(
+  "blog_posts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    authorId: uuid("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: varchar("title", { length: 180 }).notNull(),
+    slug: varchar("slug", { length: 180 }).notNull().unique(),
+    excerpt: text("excerpt").notNull(),
+    content: text("content").notNull(),
+    isPublished: boolean("is_published").notNull().default(false),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    authorIndex: index("blog_posts_author_idx").on(table.authorId),
+    slugIndex: uniqueIndex("blog_posts_slug_idx").on(table.slug),
+    publishedIndex: index("blog_posts_published_idx").on(table.isPublished, table.publishedAt),
+  }),
+);

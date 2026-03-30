@@ -97,3 +97,29 @@ export type UserListItem = AuthenticatedAppUser & {
   totalLinks: number;
   totalClicks: number;
 };
+
+export type BlogPostSummary = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  authorEmail: string;
+  isPublished: boolean;
+  readTime: string;
+};
+
+export type BlogPostDetail = BlogPostSummary & {
+  paragraphs: string[];
+};
+
+export type BlogEditorInput = {
+  title: string;
+  slug?: string;
+  excerpt: string;
+  content: string;
+  isPublished: boolean;
+};

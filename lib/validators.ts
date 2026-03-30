@@ -1,7 +1,12 @@
 import { z } from "zod";
 
 import { RESERVED_CODES } from "@/lib/constants";
-import type { CreateLinkInput, TrackAdEventInput, UpdateLinkInput } from "@/lib/types";
+import type {
+  BlogEditorInput,
+  CreateLinkInput,
+  TrackAdEventInput,
+  UpdateLinkInput,
+} from "@/lib/types";
 
 const linkSchema = z.object({
   longUrl: z.string().trim().min(1, "Please add a URL."),
@@ -18,6 +23,18 @@ const adEventSchema = z.object({
 
 const planSchema = z.object({
   plan: z.enum(["free", "paid"]),
+});
+
+const blogSchema = z.object({
+  title: z.string().trim().min(3, "Blog title should be at least 3 characters."),
+  slug: z
+    .string()
+    .trim()
+    .max(180, "Slug should be 180 characters or less.")
+    .optional(),
+  excerpt: z.string().trim().min(12, "Add a short blog summary."),
+  content: z.string().trim().min(30, "Blog content should be at least 30 characters."),
+  isPublished: z.boolean().default(false),
 });
 
 const aliasPattern = /^[a-z0-9_-]{3,32}$/;
@@ -102,4 +119,23 @@ export function parsePlanUpdatePayload(payload: unknown) {
   }
 
   return parsedPayload.data;
+}
+
+export function parseBlogPayload(payload: unknown): BlogEditorInput {
+  const parsedPayload = blogSchema.safeParse(payload);
+
+  if (!parsedPayload.success) {
+    const firstIssue = parsedPayload.error.issues[0];
+    throw new Error(firstIssue?.message ?? "Invalid blog payload.");
+  }
+
+  const slugValue = parsedPayload.data.slug?.trim();
+
+  return {
+    title: parsedPayload.data.title.trim(),
+    slug: slugValue ? validateCustomAlias(slugValue) : undefined,
+    excerpt: parsedPayload.data.excerpt.trim(),
+    content: parsedPayload.data.content.trim(),
+    isPublished: parsedPayload.data.isPublished,
+  };
 }
