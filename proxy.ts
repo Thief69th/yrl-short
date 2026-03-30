@@ -2,6 +2,8 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
 
+import { isClerkServerConfigured } from "@/lib/env";
+
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
   "/admin(.*)",
@@ -17,7 +19,7 @@ const clerkProxy = clerkMiddleware(async (auth, req) => {
 });
 
 export default function proxy(request: NextRequest, event: NextFetchEvent) {
-  if (!process.env.CLERK_SECRET_KEY || !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+  if (!isClerkServerConfigured()) {
     return NextResponse.next();
   }
 

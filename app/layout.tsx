@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
 
 import { APP_NAME } from "@/lib/constants";
-import { isClerkConfigured } from "@/lib/env";
+import { isClerkClientConfigured } from "@/lib/env";
 
 import "./globals.css";
 
@@ -37,7 +37,7 @@ export default function RootLayout({
     </html>
   );
 
-  if (!isClerkConfigured()) {
+  if (!isClerkClientConfigured()) {
     return content;
   }
 
