@@ -3,14 +3,14 @@ import "@/lib/runtime-env";
 import { SignUp } from "@clerk/nextjs";
 
 import { SetupCard } from "@/components/setup-card";
-import { isClerkConfigured } from "@/lib/env";
+import { isClerkClientConfigured } from "@/lib/env";
 
 export default function SignUpPage() {
-  if (!isClerkConfigured()) {
+  if (!isClerkClientConfigured()) {
     return (
       <SetupCard
         title="Configure Clerk to enable sign up"
-        description="Add your Clerk publishable and secret keys, then return here to create accounts."
+        description="Add your Clerk publishable key, then return here to create accounts."
       />
     );
   }
