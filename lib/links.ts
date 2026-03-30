@@ -438,29 +438,25 @@ export async function resolveRedirect(
   }
 
   const servedInterstitial = shouldServeInterstitial(row.ownerPlan);
-  const [event] = await db.transaction(async (tx) => {
-    const [created] = await tx
-      .insert(clickEvents)
-      .values({
-        linkId: row.id,
-        userId: row.userId,
-        countryCode: context.countryCode,
-        deviceType: context.deviceType,
-        referrer: context.referrer,
-        servedInterstitial,
-      })
-      .returning();
+  const [event] = await db
+    .insert(clickEvents)
+    .values({
+      linkId: row.id,
+      userId: row.userId,
+      countryCode: context.countryCode,
+      deviceType: context.deviceType,
+      referrer: context.referrer,
+      servedInterstitial,
+    })
+    .returning();
 
-    await tx
-      .update(links)
-      .set({
-        clicks: sql`${links.clicks} + 1`,
-        updatedAt: new Date(),
-      })
-      .where(eq(links.id, row.id));
-
-    return [created];
-  });
+  await db
+    .update(links)
+    .set({
+      clicks: sql`${links.clicks} + 1`,
+      updatedAt: new Date(),
+    })
+    .where(eq(links.id, row.id));
 
   if (!servedInterstitial) {
     return {
