@@ -1,3 +1,5 @@
+import { getRuntimeEnv } from "@/lib/runtime-env";
+
 import { DEFAULT_INTERSTITIAL_SECONDS, FREE_LINK_LIMIT } from "@/lib/constants";
 
 function parseNumber(value: string | undefined, fallback: number) {
@@ -10,15 +12,15 @@ function parseNumber(value: string | undefined, fallback: number) {
 }
 
 export function isDatabaseConfigured() {
-  return Boolean(process.env.DATABASE_URL);
+  return Boolean(getRuntimeEnv("DATABASE_URL"));
 }
 
 export function isClerkServerConfigured() {
-  return Boolean(process.env.CLERK_SECRET_KEY);
+  return Boolean(getRuntimeEnv("CLERK_SECRET_KEY"));
 }
 
 export function isClerkClientConfigured() {
-  return Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+  return Boolean(getRuntimeEnv("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"));
 }
 
 export function isClerkConfigured() {

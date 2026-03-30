@@ -1,3 +1,5 @@
+import "@/lib/runtime-env";
+
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";

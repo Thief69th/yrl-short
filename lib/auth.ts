@@ -1,3 +1,5 @@
+import "@/lib/runtime-env";
+
 import { auth, currentUser } from "@clerk/nextjs/server";
 
 import { AuthenticationError, ConfigurationError } from "@/lib/errors";

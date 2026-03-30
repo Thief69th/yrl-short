@@ -1,3 +1,5 @@
+import "@/lib/runtime-env";
+
 import { SignIn } from "@clerk/nextjs";
 
 import { SetupCard } from "@/components/setup-card";
