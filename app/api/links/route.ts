@@ -1,36 +1,31 @@
-import { NextResponse } from "next/server";
-
-import { DatabaseNotConfiguredError, getLinksByCodes } from "@/lib/links";
+import { requireViewer } from "@/lib/auth";
+import { jsonError } from "@/lib/http";
+import { createLinkForUser, listLinksForUser } from "@/lib/links";
 import { getBaseUrlFromRequest } from "@/lib/request";
-import { normalizeCode } from "@/lib/validators";
+import { parseCreateLinkPayload } from "@/lib/validators";
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const rawCodes = searchParams.get("codes") ?? "";
-    const codes = rawCodes
-      .split(",")
-      .map((value) => normalizeCode(value))
-      .filter(Boolean);
-
-    const links = await getLinksByCodes(codes, getBaseUrlFromRequest(request));
-
-    return NextResponse.json({ links });
+    const viewer = await requireViewer();
+    const links = await listLinksForUser(viewer, getBaseUrlFromRequest(request));
+    return Response.json({ links });
   } catch (error) {
-    if (error instanceof DatabaseNotConfiguredError) {
-      return NextResponse.json(
-        { error: "Add a DATABASE_URL to load recent links." },
-        { status: 503 },
-      );
-    }
+    return jsonError(error);
+  }
+}
 
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json(
-      { error: "Unable to load saved short links." },
-      { status: 500 },
+export async function POST(request: Request) {
+  try {
+    const viewer = await requireViewer();
+    const payload = parseCreateLinkPayload(await request.json());
+    const link = await createLinkForUser(
+      viewer,
+      payload,
+      getBaseUrlFromRequest(request),
     );
+
+    return Response.json({ link }, { status: 201 });
+  } catch (error) {
+    return jsonError(error);
   }
 }

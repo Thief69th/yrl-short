@@ -1,5 +1,5 @@
 {
-  "name": "url-shortener",
+  "name": "blink-url-shortener-pro",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,16 +7,19 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --import tsx --test tests/validators.test.ts",
-    "db:generate": "drizzle-kit generate"
+    "test": "node --import tsx --test tests/validators.test.ts tests/request.test.ts tests/policies.test.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.18.2",
+    "@neondatabase/serverless": "^1.0.1",
     "drizzle-orm": "^0.45.2",
     "next": "16.2.1",
-    "postgres": "^3.4.8",
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "recharts": "^3.2.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {

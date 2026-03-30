@@ -1,15 +1,23 @@
 import { z } from "zod";
 
 import { RESERVED_CODES } from "@/lib/constants";
-import type { CreateShortLinkInput } from "@/lib/types";
+import type { CreateLinkInput, TrackAdEventInput, UpdateLinkInput } from "@/lib/types";
 
-const requestSchema = z.object({
-  originalUrl: z.string().trim().min(1, "Please add a URL."),
+const linkSchema = z.object({
+  longUrl: z.string().trim().min(1, "Please add a URL."),
   customAlias: z
     .string()
     .trim()
     .max(32, "Alias should be 32 characters or less.")
     .optional(),
+});
+
+const adEventSchema = z.object({
+  eventId: z.string().uuid("A valid tracking id is required."),
+});
+
+const planSchema = z.object({
+  plan: z.enum(["free", "paid"]),
 });
 
 const aliasPattern = /^[a-z0-9_-]{3,32}$/;
@@ -49,19 +57,49 @@ export function validateCustomAlias(value: string) {
   return normalizedAlias;
 }
 
-export function parseShortenPayload(payload: unknown): CreateShortLinkInput {
-  const parsedPayload = requestSchema.safeParse(payload);
+function parseLinkPayload<T extends CreateLinkInput | UpdateLinkInput>(payload: unknown): T {
+  const parsedPayload = linkSchema.safeParse(payload);
 
   if (!parsedPayload.success) {
     const firstIssue = parsedPayload.error.issues[0];
     throw new Error(firstIssue?.message ?? "Invalid request payload.");
   }
 
-  const normalizedUrl = normalizeUrl(parsedPayload.data.originalUrl);
+  const normalizedUrl = normalizeUrl(parsedPayload.data.longUrl);
   const aliasValue = parsedPayload.data.customAlias?.trim();
 
   return {
-    originalUrl: normalizedUrl,
+    longUrl: normalizedUrl,
     customAlias: aliasValue ? validateCustomAlias(aliasValue) : undefined,
-  };
+  } as T;
+}
+
+export function parseCreateLinkPayload(payload: unknown): CreateLinkInput {
+  return parseLinkPayload<CreateLinkInput>(payload);
+}
+
+export function parseUpdateLinkPayload(payload: unknown): UpdateLinkInput {
+  return parseLinkPayload<UpdateLinkInput>(payload);
+}
+
+export function parseTrackAdPayload(payload: unknown): TrackAdEventInput {
+  const parsedPayload = adEventSchema.safeParse(payload);
+
+  if (!parsedPayload.success) {
+    const firstIssue = parsedPayload.error.issues[0];
+    throw new Error(firstIssue?.message ?? "Invalid request payload.");
+  }
+
+  return parsedPayload.data;
+}
+
+export function parsePlanUpdatePayload(payload: unknown) {
+  const parsedPayload = planSchema.safeParse(payload);
+
+  if (!parsedPayload.success) {
+    const firstIssue = parsedPayload.error.issues[0];
+    throw new Error(firstIssue?.message ?? "Invalid request payload.");
+  }
+
+  return parsedPayload.data;
 }

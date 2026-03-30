@@ -1,3 +1,5 @@
+import type { DeviceType } from "@/lib/types";
+
 function normalizeBaseUrl(value: string) {
   return value.endsWith("/") ? value.slice(0, -1) : value;
 }
@@ -16,4 +18,46 @@ export function getBaseUrlFromRequest(request: Request) {
   const host = forwardedHost ?? request.headers.get("host") ?? requestUrl.host;
 
   return normalizeBaseUrl(`${protocol}://${host}`);
+}
+
+function parseDeviceType(userAgent: string): DeviceType {
+  const source = userAgent.toLowerCase();
+
+  if (!source) {
+    return "unknown";
+  }
+
+  if (/bot|crawl|spider|slurp/.test(source)) {
+    return "bot";
+  }
+
+  if (/ipad|tablet/.test(source)) {
+    return "tablet";
+  }
+
+  if (/mobi|iphone|android/.test(source)) {
+    return "mobile";
+  }
+
+  return "desktop";
+}
+
+export type VisitContext = {
+  countryCode: string;
+  deviceType: DeviceType;
+  referrer: string | null;
+};
+
+export function getVisitContext(headersList: Headers): VisitContext {
+  const userAgent = headersList.get("user-agent") ?? "";
+  const countryCode =
+    (headersList.get("x-vercel-ip-country") ?? "UN").slice(0, 2).toUpperCase() ||
+    "UN";
+  const referrer = headersList.get("referer");
+
+  return {
+    countryCode,
+    deviceType: parseDeviceType(userAgent),
+    referrer,
+  };
 }

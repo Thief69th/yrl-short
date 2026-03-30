@@ -1,5 +1,9 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
+
+import { APP_NAME } from "@/lib/constants";
+import { isClerkConfigured } from "@/lib/env";
 
 import "./globals.css";
 
@@ -14,9 +18,9 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Blink - Telegram Style URL Shortener",
+  title: APP_NAME,
   description:
-    "Create fast short links with custom aliases, QR codes, recent history, and clean Telegram-inspired design.",
+    "Run a monetized URL shortener SaaS with free and paid plans, branded redirects, analytics, and Neon-backed link management.",
 };
 
 export default function RootLayout({
@@ -24,12 +28,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
+  const content = (
     <html
       lang="en"
       className={`${manrope.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full">{children}</body>
     </html>
   );
+
+  if (!isClerkConfigured()) {
+    return content;
+  }
+
+  return <ClerkProvider afterSignOutUrl="/">{content}</ClerkProvider>;
 }

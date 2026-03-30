@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { DatabaseNotConfiguredError, resolveShortLink } from "@/lib/links";
+import { InterstitialRedirect } from "@/components/interstitial-redirect";
+import { resolveRedirect } from "@/lib/links";
+import { getBaseUrlFromRequest, getVisitContext } from "@/lib/request";
 
 type RedirectPageProps = {
   params: Promise<{
@@ -11,63 +14,45 @@ type RedirectPageProps = {
 
 export default async function RedirectPage({ params }: RedirectPageProps) {
   const { code } = await params;
+  const headerList = await headers();
+  const baseUrl = getBaseUrlFromRequest(
+    new Request(`${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/r/${code}`, {
+      headers: headerList,
+    }),
+  );
+  const result = await resolveRedirect(code, baseUrl, getVisitContext(headerList));
 
-  try {
-    const link = await resolveShortLink(code);
+  if (result.status === "redirect") {
+    redirect(result.destination);
+  }
 
-    if (link) {
-      redirect(link.originalUrl);
-    }
-  } catch (error) {
-    if (error instanceof DatabaseNotConfiguredError) {
-      return (
-        <main className="flex min-h-screen items-center justify-center px-6 py-16">
-          <div className="glass-card w-full max-w-xl rounded-[28px] p-8 text-center sm:p-10">
-            <span className="inline-flex rounded-full bg-brand-soft px-4 py-1 text-sm font-semibold text-brand-strong">
-              Storage setup needed
-            </span>
-            <h1 className="mt-5 font-display text-4xl font-bold tracking-tight text-foreground">
-              Add your database URL first
-            </h1>
-            <p className="mt-4 text-base leading-7 text-muted">
-              This short link cannot resolve yet because the app is missing a
-              valid <code className="rounded bg-white/70 px-2 py-1">DATABASE_URL</code>.
-            </p>
-            <Link
-              href="/"
-              className="mt-8 inline-flex items-center justify-center rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white shadow-[0_16px_32px_rgba(11,125,228,0.28)] hover:-translate-y-0.5 hover:bg-brand-strong"
-            >
-              Back to home
-            </Link>
-          </div>
-        </main>
-      );
-    }
-
-    throw error;
+  if (result.status === "interstitial") {
+    return (
+      <InterstitialRedirect
+        destination={result.destination}
+        shortUrl={result.shortUrl}
+        eventId={result.eventId}
+        countdownSeconds={result.countdownSeconds}
+        adMarkup={result.adMarkup}
+        sponsorUrl={process.env.NEXT_PUBLIC_AD_SPONSOR_URL ?? null}
+      />
+    );
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6 py-16">
-      <div className="glass-card w-full max-w-xl rounded-[28px] p-8 text-center sm:p-10">
-        <span className="inline-flex rounded-full bg-brand-soft px-4 py-1 text-sm font-semibold text-brand-strong">
-          Link unavailable
-        </span>
-        <h1 className="mt-5 font-display text-4xl font-bold tracking-tight text-foreground">
+    <main className="app-shell items-center justify-center">
+      <section className="glass-card w-full max-w-2xl rounded-[34px] p-8 text-center sm:p-10">
+        <span className="pill">Link unavailable</span>
+        <h1 className="mt-5 font-display text-4xl font-bold text-foreground">
           This short link doesn&apos;t exist
         </h1>
-        <p className="mt-4 text-base leading-7 text-muted">
-          The code <code className="rounded bg-white/70 px-2 py-1">{code}</code>{" "}
-          was not found, may have been typed incorrectly, or is not active in
-          the current database.
+        <p className="mt-4 text-base leading-8 text-muted">
+          The code <code className="rounded bg-white px-2 py-1">{code}</code> was not found or is no longer active.
         </p>
-        <Link
-          href="/"
-          className="mt-8 inline-flex items-center justify-center rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white shadow-[0_16px_32px_rgba(11,125,228,0.28)] hover:-translate-y-0.5 hover:bg-brand-strong"
-        >
+        <Link href="/" className="button-primary mt-8">
           Create a new short link
         </Link>
-      </div>
+      </section>
     </main>
   );
 }

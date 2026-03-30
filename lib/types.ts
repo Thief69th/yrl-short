@@ -1,18 +1,99 @@
-export type CreateShortLinkInput = {
-  originalUrl: string;
-  customAlias?: string;
+import type { DEVICE_OPTIONS, PLAN_OPTIONS, ROLE_OPTIONS } from "@/lib/constants";
+
+export type Plan = (typeof PLAN_OPTIONS)[number];
+export type Role = (typeof ROLE_OPTIONS)[number];
+export type DeviceType = (typeof DEVICE_OPTIONS)[number];
+
+export type AuthenticatedAppUser = {
+  id: string;
+  clerkUserId: string;
+  email: string;
+  plan: Plan;
+  role: Role;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type LinkSnapshot = {
-  code: string;
-  originalUrl: string;
+  id: string;
+  longUrl: string;
+  shortCode: string;
   shortUrl: string;
-  clickCount: number;
-  createdAt: string;
-  lastVisitedAt: string | null;
   customAlias: string | null;
+  clicks: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  ownerPlan: Plan;
 };
 
-export type ShortenResponse = LinkSnapshot & {
-  qrDataUrl: string;
+export type DashboardTotals = {
+  totalLinks: number;
+  activeLinks: number;
+  totalClicks: number;
+  estimatedRevenue: number;
+};
+
+export type DailyAnalyticsPoint = {
+  date: string;
+  clicks: number;
+  revenue: number;
+};
+
+export type BreakdownPoint = {
+  label: string;
+  value: number;
+};
+
+export type DashboardOverview = {
+  viewer: AuthenticatedAppUser;
+  totals: DashboardTotals;
+  recentLinks: LinkSnapshot[];
+  chart: DailyAnalyticsPoint[];
+  countryBreakdown: BreakdownPoint[];
+  deviceBreakdown: BreakdownPoint[];
+};
+
+export type LinkAnalytics = {
+  link: LinkSnapshot;
+  chart: DailyAnalyticsPoint[];
+  countryBreakdown: BreakdownPoint[];
+  deviceBreakdown: BreakdownPoint[];
+};
+
+export type RedirectResolution =
+  | {
+      status: "missing";
+    }
+  | {
+      status: "redirect";
+      destination: string;
+    }
+  | {
+      status: "interstitial";
+      destination: string;
+      shortUrl: string;
+      eventId: string;
+      countdownSeconds: number;
+      adMarkup: string | null;
+    };
+
+export type CreateLinkInput = {
+  longUrl: string;
+  customAlias?: string;
+};
+
+export type UpdateLinkInput = {
+  longUrl: string;
+  customAlias?: string;
+};
+
+export type TrackAdEventInput = {
+  eventId: string;
+};
+
+export type UserListItem = AuthenticatedAppUser & {
+  totalLinks: number;
+  totalClicks: number;
 };

@@ -4,7 +4,9 @@ import test from "node:test";
 import {
   normalizeCode,
   normalizeUrl,
-  parseShortenPayload,
+  parseCreateLinkPayload,
+  parsePlanUpdatePayload,
+  parseTrackAdPayload,
   validateCustomAlias,
 } from "../lib/validators";
 
@@ -24,14 +26,27 @@ test("validateCustomAlias rejects reserved aliases", () => {
   assert.throws(() => validateCustomAlias("api"), /reserved/i);
 });
 
-test("parseShortenPayload normalizes url and alias", () => {
-  const payload = parseShortenPayload({
-    originalUrl: "openai.com",
+test("parseCreateLinkPayload normalizes url and alias", () => {
+  const payload = parseCreateLinkPayload({
+    longUrl: "openai.com",
     customAlias: "Launch-2026",
   });
 
   assert.deepEqual(payload, {
-    originalUrl: "https://openai.com/",
+    longUrl: "https://openai.com/",
     customAlias: "launch-2026",
   });
+});
+
+test("parseTrackAdPayload requires a uuid event id", () => {
+  const payload = parseTrackAdPayload({
+    eventId: "7f735e5f-c2f5-4fa4-89d6-b72e2a0dd9c2",
+  });
+
+  assert.equal(payload.eventId, "7f735e5f-c2f5-4fa4-89d6-b72e2a0dd9c2");
+});
+
+test("parsePlanUpdatePayload accepts free and paid", () => {
+  assert.deepEqual(parsePlanUpdatePayload({ plan: "paid" }), { plan: "paid" });
+  assert.deepEqual(parsePlanUpdatePayload({ plan: "free" }), { plan: "free" });
 });
