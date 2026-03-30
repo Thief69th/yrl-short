@@ -25,6 +25,7 @@ import type {
   UpdateLinkInput,
 } from "@/lib/types";
 import type { VisitContext } from "@/lib/request";
+import { getOrCreatePublicGuestUser } from "@/lib/users";
 
 type LinkRow = typeof links.$inferSelect;
 
@@ -184,6 +185,32 @@ export async function createLinkForUser(
       .returning();
 
     return serializeLink(link, baseUrl, viewer.plan);
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new ConflictError("That custom alias is already taken.");
+    }
+
+    throw error;
+  }
+}
+
+export async function createPublicLink(input: CreateLinkInput, baseUrl: string) {
+  const guestUser = await getOrCreatePublicGuestUser();
+  const db = getDb();
+  const shortCode = input.customAlias ?? (await generateAvailableCode());
+
+  try {
+    const [link] = await db
+      .insert(links)
+      .values({
+        userId: guestUser.id,
+        longUrl: input.longUrl,
+        shortCode,
+        customAlias: input.customAlias ?? null,
+      })
+      .returning();
+
+    return serializeLink(link, baseUrl, guestUser.plan);
   } catch (error) {
     if (isUniqueViolation(error)) {
       throw new ConflictError("That custom alias is already taken.");

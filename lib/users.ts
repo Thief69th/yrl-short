@@ -7,6 +7,8 @@ import { isAdminEmail } from "@/lib/env";
 import type { AuthenticatedAppUser, Plan, UserListItem } from "@/lib/types";
 
 type UserRow = typeof users.$inferSelect;
+const PUBLIC_GUEST_CLERK_ID = "__public_guest__";
+const PUBLIC_GUEST_EMAIL = "guest@blink.local";
 
 function serializeUser(row: UserRow): AuthenticatedAppUser {
   return {
@@ -104,6 +106,28 @@ export async function updateUserPlan(userId: string, plan: Plan) {
   if (!user) {
     throw new Error("User not found.");
   }
+
+  return serializeUser(user);
+}
+
+export async function getOrCreatePublicGuestUser() {
+  const db = getDb();
+  const [user] = await db
+    .insert(users)
+    .values({
+      clerkUserId: PUBLIC_GUEST_CLERK_ID,
+      email: PUBLIC_GUEST_EMAIL,
+      plan: "free",
+      role: "user",
+    })
+    .onConflictDoUpdate({
+      target: users.clerkUserId,
+      set: {
+        email: PUBLIC_GUEST_EMAIL,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
 
   return serializeUser(user);
 }

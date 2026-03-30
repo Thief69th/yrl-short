@@ -1,8 +1,10 @@
 import Link from "next/link";
 
+import { PublicPageShell } from "@/components/public-page-shell";
+
 export default function PricingPage() {
   return (
-    <main className="app-shell">
+    <PublicPageShell>
       <section className="glass-card rounded-[36px] p-6 sm:p-8 lg:p-10">
         <span className="pill">Pricing</span>
         <h1 className="mt-5 section-title">Simple launch pricing for Blink Pro.</h1>
@@ -46,6 +48,6 @@ export default function PricingPage() {
           </Link>
         </div>
       </section>
-    </main>
+    </PublicPageShell>
   );
 }
